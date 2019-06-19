@@ -27,8 +27,8 @@ public abstract class LineChartAdapter extends AxisChartAdapter implements LineC
     }
 
     @Override
-    public void notifyDatasetChanged() {
+    public void notifyDataSetChanged() {
         indicators.clear();
-        super.notifyDatasetChanged();
+        super.notifyDataSetChanged();
     }
 }

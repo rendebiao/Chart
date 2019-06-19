@@ -7,6 +7,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.SparseBooleanArray;
+
 import com.rdb.chart.Chart;
 import com.rdb.chart.ChartFloatValue;
 import com.rdb.chart.ChartUtils;
@@ -125,8 +126,8 @@ public class DialChart extends Chart<DialChartAdapter, DialChartStyle> implement
     }
 
     @Override
-    protected void onDatasetChanged(RectF chartRect, DialChartAdapter adapter) {
-        super.onDatasetChanged(chartRect, adapter);
+    protected void onDataSetChanged(RectF chartRect, DialChartAdapter adapter) {
+        super.onDataSetChanged(chartRect, adapter);
         minValue = adapter.getMinValue();
         maxValue = adapter.getMaxValue();
         curValue = adapter.getCurValue();

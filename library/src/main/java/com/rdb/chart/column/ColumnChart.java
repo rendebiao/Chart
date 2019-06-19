@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+
 import com.rdb.chart.ChartUtils;
 import com.rdb.chart.axis.AxisChart;
 
@@ -89,8 +90,8 @@ public class ColumnChart extends AxisChart<ColumnChartAdapter, ColumnChartStyle>
     }
 
     @Override
-    protected void onDatasetChanged(RectF chartRect, ColumnChartAdapter adapter) {
-        super.onDatasetChanged(chartRect, adapter);
+    protected void onDataSetChanged(RectF chartRect, ColumnChartAdapter adapter) {
+        super.onDataSetChanged(chartRect, adapter);
         textPaint.setTextSize(dpToPx(style.getYAxisTextSize()));
         textPaint.setColor(style.getYAxisTextColor());
         float xAxisRatio = xAxisTextCount > 0 ? getAxisPositionRatio() : lastXAxisRatio;

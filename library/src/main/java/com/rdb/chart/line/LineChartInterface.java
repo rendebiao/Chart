@@ -11,4 +11,8 @@ public interface LineChartInterface {
     LineType getLineType(int linePosition);
 
     int getLineColor(int linePosition);
+
+    int getPointColor(int linePosition);
+
+    int getSelectPointColor(int linePosition);
 }

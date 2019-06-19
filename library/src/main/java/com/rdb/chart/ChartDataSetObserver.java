@@ -14,7 +14,7 @@ public class ChartDataSetObserver extends android.database.DataSetObserver {
 
     @Override
     public void onChanged() {
-        chart.notifyDatasetChanged();
+        chart.notifyDataSetChanged();
     }
 
     @Override

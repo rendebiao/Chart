@@ -20,7 +20,7 @@ public abstract class ChartAdapter implements ChartInterface {
         dataSetObservable.unregisterObserver(observer);
     }
 
-    public void notifyDatasetChanged() {
+    public void notifyDataSetChanged() {
         dataSetObservable.notifyChanged();
     }
 

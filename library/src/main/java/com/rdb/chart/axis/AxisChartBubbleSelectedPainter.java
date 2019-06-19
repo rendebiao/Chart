@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+
 import com.rdb.chart.ChartPainter;
 
 import java.text.NumberFormat;
@@ -26,6 +27,10 @@ public class AxisChartBubbleSelectedPainter extends ChartPainter<AxisChart> {
     Paint selectBgPaint;
     Paint selectValuePaint;
     NumberFormat numberFormat = NumberFormat.getNumberInstance();
+
+    public AxisChartBubbleSelectedPainter(Context context) {
+        this(context, 0x66000000, 0xffffffff);
+    }
 
     public AxisChartBubbleSelectedPainter(Context context, int backgroundColor, int textColor) {
         float density = context.getResources().getDisplayMetrics().density;

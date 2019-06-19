@@ -2,8 +2,8 @@ package com.rdb.chart.axis;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
+
 import com.rdb.chart.ChartPainter;
 import com.rdb.chart.ChartUtils;
 import com.rdb.chart.column.ColumnChart;
@@ -22,12 +22,11 @@ public class AxisCharTableSelectedPainter extends ChartPainter<AxisChart> {
     float xOffset;
     float nameSpace;
     float indicatorSize;
-    int selectLineColor = Color.parseColor("#dddddd");
-    int selectTextColor = Color.parseColor("#666666");
-    int selectRowBgColor = Color.parseColor("#efeff0");
-    int selectTitleBgColor = Color.parseColor("#87909a");
+    int selectTextColor;
+    int selectRowBgColor;
+    int selectTitleBgColor;
+    int dividerColor;
     Paint selectBgPaint;
-    Paint selectLinePaint;
     Paint selectTitlePaint;
     Paint selectNamePaint;
     Paint selectValuePaint;
@@ -35,6 +34,14 @@ public class AxisCharTableSelectedPainter extends ChartPainter<AxisChart> {
     NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
     public AxisCharTableSelectedPainter(Context context) {
+        this(context, 0x66000000, 0x77000000, 0xffffffff, 0x88ffffff);
+    }
+
+    public AxisCharTableSelectedPainter(Context context, int selectRowBgColor, int selectTitleBgColor, int selectTextColor, int dividerColor) {
+        this.selectRowBgColor = selectRowBgColor;
+        this.selectTitleBgColor = selectTitleBgColor;
+        this.selectTextColor = selectTextColor;
+        this.dividerColor = dividerColor;
         float density = context.getResources().getDisplayMetrics().density;
         numberFormat.setGroupingUsed(false);
         padding = 8 * density;
@@ -43,12 +50,8 @@ public class AxisCharTableSelectedPainter extends ChartPainter<AxisChart> {
         indicatorSize = 4 * density;
         selectBgPaint = new Paint();
         selectBgPaint.setAntiAlias(true);
-        selectLinePaint = new Paint();
-        selectLinePaint.setAntiAlias(true);
-        selectLinePaint.setStrokeWidth(1);
-        selectLinePaint.setColor(selectLineColor);
         selectTitlePaint = new Paint();
-        selectTitlePaint.setColor(Color.WHITE);
+        selectTitlePaint.setColor(selectTextColor);
         selectTitlePaint.setTextSize(density * 10);
         selectTitlePaint.setAntiAlias(true);
         selectNamePaint = new Paint();
@@ -60,7 +63,7 @@ public class AxisCharTableSelectedPainter extends ChartPainter<AxisChart> {
         selectValuePaint.setTextSize(density * 10);
         selectValuePaint.setAntiAlias(true);
         selectGridPaint = new Paint();
-        selectGridPaint.setColor(Color.GRAY);
+        selectGridPaint.setColor(dividerColor);
         selectGridPaint.setStyle(Paint.Style.STROKE);
         selectGridPaint.setStrokeWidth(1);
         selectGridPaint.setAntiAlias(true);
@@ -93,7 +96,6 @@ public class AxisCharTableSelectedPainter extends ChartPainter<AxisChart> {
             float startOffset = alignRight ? xOffset : -rowWidth - xOffset;
             canvas.save();
             canvas.clipRect(chart.getCenterRect());
-            canvas.drawLine(centerX, chart.getCenterRect().top, centerX, chart.getCenterRect().bottom, selectLinePaint);
             selectBgPaint.setColor(selectTitleBgColor);
             canvas.drawRect(centerX + startOffset, chart.getCenterRect().top, centerX + startOffset + rowWidth, chart.getCenterRect().top + rowHeight, selectBgPaint);
             selectBgPaint.setColor(selectRowBgColor);

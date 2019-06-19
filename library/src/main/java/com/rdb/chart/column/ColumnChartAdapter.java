@@ -28,8 +28,8 @@ public abstract class ColumnChartAdapter extends AxisChartAdapter implements Col
     }
 
     @Override
-    public void notifyDatasetChanged() {
+    public void notifyDataSetChanged() {
         indicators.clear();
-        super.notifyDatasetChanged();
+        super.notifyDataSetChanged();
     }
 }

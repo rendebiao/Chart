@@ -9,9 +9,14 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewConfiguration;
-import com.rdb.chart.*;
+
+import com.rdb.chart.Chart;
+import com.rdb.chart.ChartIndicator;
+import com.rdb.chart.ChartLine;
+import com.rdb.chart.ChartPainter;
+import com.rdb.chart.ChartUtils;
+import com.rdb.chart.IndicatorType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +25,7 @@ import java.util.List;
  * Created by DB on 2016/12/19 0019.
  */
 
-public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartStyle> extends Chart<T, V> implements AxisChartInterface, View.OnClickListener {
+public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartStyle> extends Chart<T, V> implements AxisChartInterface {
 
     protected int groupCount;
     protected float[][] values;
@@ -33,8 +38,6 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
     protected float yAxisMaxValue;
     protected int selectPosition = -1;
     private String unitText;
-    private float unitTextWidth;
-    private int moveSlop;
     private float xAxisPositionRatio;
     private float yAxisPositionRatio;
     private float yAxisValueRatio;
@@ -43,6 +46,8 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
     private float maxDragDistance;
     private int lastXValueCount;
     private int lastYValueCount;
+    private boolean drag;
+    private int touchSlop;
     private Paint axisPaint;
     private Paint horLinePaint;
     private Paint verLinePaint;
@@ -59,16 +64,12 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
     private RectF indicatorRect = new RectF();
     private ChartPainter<AxisChart> selectedPainter;
     private AxisChartDrawListener<AxisChart> drawListener;
-    private View.OnClickListener clickListener;
     private ChartLine xAxisLine;
     private ChartLine yAxisLine;
     private List<ChartAxis> verChartAxiss = new ArrayList<>();
     private List<ChartAxis> horChartAxiss = new ArrayList<>();
-    private Boolean scroll;
     private float startX;
-    private float startY;
     private float lastDistance;
-    private int eventCount;
 
     public AxisChart(Context context) {
         this(context, null);
@@ -101,7 +102,6 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
         indicatorPaint.setAntiAlias(true);
         indicatorTextPaint = new Paint();
         indicatorTextPaint.setAntiAlias(true);
-        moveSlop = ViewConfiguration.get(context).getScaledTouchSlop();
     }
 
     @Override
@@ -133,8 +133,8 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
     }
 
     @Override
-    protected void onDatasetChanged(RectF chartRect, T adapter) {
-        super.onDatasetChanged(chartRect, adapter);
+    protected void onDataSetChanged(RectF chartRect, T adapter) {
+        super.onDataSetChanged(chartRect, adapter);
         if (TextUtils.isEmpty(valueUnit)) {
             unitText = "";
         } else {
@@ -146,9 +146,7 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
         yAxisMinValue = adapter.getYAxisMinValue();
         yAxisMaxValue = adapter.getYAxisMaxValue();
         axisPaint.setStrokeWidth(dpToPx(style.getAxisLineWidth()));
-        horLinePaint.setColor(style.getGridLineColor());
         horLinePaint.setStrokeWidth(dpToPx(style.getGridLineWidth()));
-        verLinePaint.setColor(style.getGridLineColor());
         verLinePaint.setStrokeWidth(dpToPx(style.getGridLineWidth()));
         xAxisTextPaint.setColor(style.getXAxisTextColor());
         xAxisTextPaint.setTextSize(dpToPx(style.getXAxisTextSize()));
@@ -183,8 +181,7 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
             }
             axis.setText(adapter.getXAxisText(i));
         }
-        unitTextWidth = yAxisTextPaint.measureText(unitText);
-        float yAxisTextWidth = 0;
+        float yAxisTextWidth = yAxisTextPaint.measureText(unitText);
         for (int i = 0; i < yAxisValueCount; i++) {
             ChartAxis axis;
             if (horChartAxiss.size() > i) {
@@ -254,7 +251,8 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
             axis.movePointTo(x, xTextRect.centerY() + xAxisTextPaint.getTextSize() / 2, true);
             y = centerRect.bottom - yAxisPositionRatio * (yAxisValueCount - 1);
             axis.moveLineTo(x, centerRect.bottom, x, y, true);
-            axis.moveLineColor(style.getGridLineColor(), lastShow);
+            axis.moveLineColor(ChartUtils.updateAlpha(style.getGridLineColor(), 0), false);
+            axis.moveLineColor(ChartUtils.updateAlpha(style.getGridLineColor(), 60), lastShow);
             axis.getLine().setLineType(style.getVerLineType());
         }
         lastXValueCount = xAxisTextCount;
@@ -262,14 +260,13 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
             ChartAxis axis = horChartAxiss.get(i);
             boolean lastShow = i < lastYValueCount;
             if (!lastShow) {
-                y = centerRect.bottom - lastYAxisRatio * i;
-                axis.movePointTo(yTextRect.right - yTextOffset, y, false);
-                axis.moveLineTo(centerRect.left, y, centerRect.right, y, false);
+
             }
             y = centerRect.bottom - yAxisPositionRatio * i;
-            axis.movePointTo(yTextRect.right - yTextOffset, y, true);
-            axis.moveLineTo(centerRect.left, y, centerRect.right, y, true);
-            axis.moveLineColor(style.getGridLineColor(), true);
+            axis.movePointTo(yTextRect.right - yTextOffset, y, false);
+            axis.moveLineTo(centerRect.left, y, centerRect.right, y, false);
+            axis.moveLineColor(ChartUtils.updateAlpha(style.getGridLineColor(), 0), false);
+            axis.moveLineColor(ChartUtils.updateAlpha(style.getGridLineColor(), 60), true);
             axis.getLine().setLineType(style.getHorLineType());
         }
         boolean lastShow = false;
@@ -439,79 +436,66 @@ public abstract class AxisChart<T extends AxisChartAdapter, V extends AxisChartS
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        boolean touch = true;
-        boolean invalidate = false;
-        boolean cancel = event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP;
-        if (dragEnable) {
-            if (eventCount == 0) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
                 startX = event.getX();
-                startY = event.getY();
+                drag = false;
+                if (dragEnable) {
                 lastDistance = getDragDistance();
-            } else {
-                if (scroll == null && Math.abs(event.getX() - startX) >= moveSlop) {
-                    scroll = Math.abs((event.getX() - startX) / (event.getY() - startY)) > 2;
+                    if (touchSlop == 0) {
+                        touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
+                    }
                 }
-                if (scroll == Boolean.TRUE) {
+                return super.onTouchEvent(event) || true;
+            case MotionEvent.ACTION_MOVE:
+                if (dragEnable && !drag) {
+                    if (Math.abs(startX - event.getX()) >= touchSlop) {
+                        drag = true;
+                    }
+                }
+                if (drag) {
                     dragDistance = lastDistance - event.getX() + startX;
                     dragDistance = Math.max(0, dragDistance);
                     dragDistance = Math.min(maxDragDistance, dragDistance);
-                    invalidate = true;
+                    postInvalidate();
                 }
-                if (scroll == Boolean.FALSE) {
-                    touch = false;
-                }
-            }
-            if (cancel) {
-                startX = 0;
-                startY = 0;
-                scroll = null;
-                lastDistance = 0;
-            }
-        }
-        if (cancel) {
-            if (eventCount <= 4) {
-                if (clickListener != null) {
-                    clickListener.onClick(this);
-                }
-                if (xAxisTextCount > 0) {
-                    for (int i = 0; i < lastXValueCount; i++) {
-                        boolean clickGrid = gridRect.contains(event.getX(), event.getY());
-                        if (clickGrid) {
-                            float distance = verChartAxiss.get(i).getPoint().getCurX() - getDragDistance() - event.getX();
-                            if (distance < -xAxisPositionRatio / 3) {
-                                selectPosition = -1;
-                            } else if (distance >= -xAxisPositionRatio / 3 && distance <= xAxisPositionRatio / 3) {
-                                selectPosition = i;
-                                break;
-                            } else if (distance > xAxisPositionRatio / 3) {
-                                selectPosition = -1;
-                                break;
+                break;
+            case MotionEvent.ACTION_UP:
+                if (!drag) {
+                    if (xAxisTextCount > 0) {
+                        int position = -1;
+                        for (int i = 0; i < lastXValueCount; i++) {
+                            boolean clickGrid = gridRect.contains(event.getX(), event.getY());
+                            if (clickGrid) {
+                                float distance = verChartAxiss.get(i).getPoint().getCurX() - getDragDistance() - event.getX();
+                                if (distance < -xAxisPositionRatio / 3) {
+                                    position = -1;
+                                } else if (distance >= -xAxisPositionRatio / 3 && distance <= xAxisPositionRatio / 3) {
+                                    position = i;
+                                    break;
+                                } else if (distance > xAxisPositionRatio / 3) {
+                                    position = -1;
+                                    break;
+                                }
+                            } else {
+                                position = -1;
                             }
-                        } else {
-                            selectPosition = -1;
+                        }
+                        if (position >= 0) {
+                            if (selectPosition >= 0) {
+                                verChartAxiss.get(selectPosition).getLine().moveColorTo(ChartUtils.updateAlpha(style.getGridLineColor(), 60), false);
+                            }
+                            selectPosition = position;
+                            if (selectPosition >= 0) {
+                                verChartAxiss.get(selectPosition).getLine().moveColorTo(style.getGridLineColor(), false);
+                            }
+                            postInvalidate();
                         }
                     }
-                    invalidate = true;
                 }
-            }
-            eventCount = 0;
-        } else {
-            eventCount++;
+                break;
         }
-        if (invalidate) {
-            postInvalidate();
-        }
-        return touch;
-    }
-
-    @Override
-    public void onClick(View v) {
-
-    }
-
-    @Override
-    public void setOnClickListener(View.OnClickListener l) {
-        this.clickListener = l;
+        return drag || super.onTouchEvent(event);
     }
 
     public void setSelectedPainter(ChartPainter<AxisChart> selectedPainter) {

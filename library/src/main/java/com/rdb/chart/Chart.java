@@ -2,9 +2,14 @@ package com.rdb.chart;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
+
 import com.rdb.chart.line.LineType;
 
 /**
@@ -24,10 +29,10 @@ public abstract class Chart<T extends ChartAdapter, V extends ChartStyle> extend
     private ChartDataSetObserver chartDataSetObserver;
     private ValueAnimator moveAnimator = ValueAnimator.ofFloat(0, 1);
 
-    private Runnable notifyDatasetRunnable = new Runnable() {
+    private Runnable notifyDataSetRunnable = new Runnable() {
         @Override
         public void run() {
-            notifyDatasetChanged();
+            notifyDataSetChanged();
         }
     };
 
@@ -61,14 +66,14 @@ public abstract class Chart<T extends ChartAdapter, V extends ChartStyle> extend
             }
             adapter.registerDataSetObserver(chartDataSetObserver);
         }
-        notifyDatasetChanged();
+        notifyDataSetChanged();
     }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         if (changed) {
-            post(notifyDatasetRunnable);
+            post(notifyDataSetRunnable);
         }
     }
 
@@ -93,7 +98,7 @@ public abstract class Chart<T extends ChartAdapter, V extends ChartStyle> extend
 
     }
 
-    void notifyDatasetChanged() {
+    void notifyDataSetChanged() {
         if (adapter != null && style != null) {
             chartRect.set(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(), getHeight() - getPaddingBottom());
             float[] dashIntervals = new float[style.getDashIntervals().length];
@@ -105,13 +110,13 @@ public abstract class Chart<T extends ChartAdapter, V extends ChartStyle> extend
                 if (moveAnimator.isRunning()) {
                     moveAnimator.cancel();
                 }
-                onDatasetChanged(chartRect, adapter);
+                onDataSetChanged(chartRect, adapter);
                 moveAnimator.start();
             }
         }
     }
 
-    protected void onDatasetChanged(RectF chartRect, T adapter) {
+    protected void onDataSetChanged(RectF chartRect, T adapter) {
         valueUnit = adapter.getValueUnit();
         chartName = adapter.getChartName();
     }
@@ -130,22 +135,6 @@ public abstract class Chart<T extends ChartAdapter, V extends ChartStyle> extend
             paint.setColor(line.getColor());
             paint.setPathEffect(line.getLineType() == LineType.DASH ? dashPathEffect : null);
             canvas.drawPath(drawPath, paint);
-        }
-    }
-
-    public void drawPoints(Canvas canvas, ChartLine line, Paint paint, float xOffset, float yOffset, float radius, RectF rectF, OnPointDrawListener pointDrawListener) {
-        if (line.getPointType() != null && radius > 0) {
-            for (int i = 0; i < line.getPointCount(); i++) {
-                Point point = line.getPoint(i);
-                float x = point.getCurX() - xOffset;
-                if (x >= rectF.left && x <= rectF.right) {
-                    paint.setColor(line.getColor());
-                    ChartUtils.drawPoint(canvas, paint, line.getPointType(), x, point.getCurY() - yOffset, radius);
-                    if (pointDrawListener != null) {
-                        pointDrawListener.onPointDraw(canvas, point);
-                    }
-                }
-            }
         }
     }
 
@@ -174,7 +163,7 @@ public abstract class Chart<T extends ChartAdapter, V extends ChartStyle> extend
 
     public void setStyle(V style) {
         this.style = (V) style.clone();
-        notifyDatasetChanged();
+        notifyDataSetChanged();
     }
 
     @Override

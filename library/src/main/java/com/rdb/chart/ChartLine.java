@@ -14,6 +14,8 @@ public class ChartLine implements ChartAnimatable {
 
     int pointCount;
     ChartColor color;
+    ChartColor pointColor = new ChartColor();
+    ChartColor selectedPointColor = new ChartColor();
     PointType pointType;
     LineType lineType = LineType.NORMAL;
     List<Point> points = new ArrayList<>();
@@ -41,6 +43,14 @@ public class ChartLine implements ChartAnimatable {
 
     public void moveColorTo(int toColor, boolean animateTo) {
         color.moveTo(toColor, animateTo);
+    }
+
+    public void movePointColorTo(int toColor, boolean animateTo) {
+        pointColor.moveTo(toColor, animateTo);
+    }
+
+    public void moveSelectedPointColorTo(int toColor, boolean animateTo) {
+        selectedPointColor.moveTo(toColor, animateTo);
     }
 
     public Point getPoint(int position) {
@@ -107,6 +117,14 @@ public class ChartLine implements ChartAnimatable {
         return color.getColor();
     }
 
+    public int getPointColor() {
+        return pointColor.getColor();
+    }
+
+    public int getSelectedPointColor() {
+        return selectedPointColor.getColor();
+    }
+
     public void setLength(int length) {
         pointCount = length;
         if (points.size() < length) {
@@ -127,6 +145,8 @@ public class ChartLine implements ChartAnimatable {
             points.get(i).updateAnimatorValue(animatorValue);
         }
         color.updateAnimatorValue(animatorValue);
+        pointColor.updateAnimatorValue(animatorValue);
+        selectedPointColor.updateAnimatorValue(animatorValue);
         return true;
     }
 }

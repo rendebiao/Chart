@@ -7,6 +7,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+
 import com.rdb.chart.Chart;
 import com.rdb.chart.ChartLine;
 import com.rdb.chart.ChartUtils;
@@ -67,8 +68,8 @@ public class LineChart extends AxisChart<LineChartAdapter, LineChartStyle> imple
     }
 
     @Override
-    protected void onDatasetChanged(RectF chartRect, LineChartAdapter adapter) {
-        super.onDatasetChanged(chartRect, adapter);
+    protected void onDataSetChanged(RectF chartRect, LineChartAdapter adapter) {
+        super.onDataSetChanged(chartRect, adapter);
         textPaint.setTextSize(dpToPx(style.getYAxisTextSize()));
         textPaint.setColor(style.getYAxisTextColor());
         float xAxisRatio = getAxisPositionRatio();
@@ -92,6 +93,8 @@ public class LineChart extends AxisChart<LineChartAdapter, LineChartStyle> imple
             line.setLength(totalCount);
             line.setPointType(adapter.getPointType(i));
             line.moveColorTo(adapter.getLineColor(i), true);
+            line.movePointColorTo(adapter.getPointColor(i), true);
+            line.moveSelectedPointColorTo(adapter.getSelectPointColor(i), true);
             line.setLineType(adapter.getLineType(i));
             for (int j = 0; j < totalCount; j++) {
                 animator = j < animatorCount;
@@ -148,7 +151,23 @@ public class LineChart extends AxisChart<LineChartAdapter, LineChartStyle> imple
     private void drawPoint(Canvas canvas) {
         float radius = dpToPx(style.getPointRadius());
         for (int i = 0; i < groupCount; i++) {
-            drawPoints(canvas, lines.get(i), pointPaint, getDragDistance(), 0, radius, getCenterRect(), style.isShowValue() ? this : null);
+            drawPoints(canvas, lines.get(i), pointPaint, getDragDistance(), 0, getPointColor(i), getSelectPointColor(i), radius, getCenterRect(), style.isShowValue() ? this : null);
+        }
+    }
+
+    public void drawPoints(Canvas canvas, ChartLine line, Paint paint, float xOffset, float yOffset, int pointColor, int selectedPointColor, float radius, RectF rectF, OnPointDrawListener pointDrawListener) {
+        if (line.getPointType() != null && radius > 0) {
+            for (int i = 0; i < line.getPointCount(); i++) {
+                Point point = line.getPoint(i);
+                float x = point.getCurX() - xOffset;
+                if (x >= rectF.left && x <= rectF.right) {
+                    paint.setColor(selectPosition == i ? selectedPointColor : pointColor);
+                    ChartUtils.drawPoint(canvas, paint, line.getPointType(), x, point.getCurY() - yOffset, radius);
+                    if (pointDrawListener != null) {
+                        pointDrawListener.onPointDraw(canvas, point);
+                    }
+                }
+            }
         }
     }
 
@@ -175,6 +194,16 @@ public class LineChart extends AxisChart<LineChartAdapter, LineChartStyle> imple
     @Override
     public int getLineColor(int linePosition) {
         return lines.get(linePosition).getColor();
+    }
+
+    @Override
+    public int getPointColor(int linePosition) {
+        return lines.get(linePosition).getPointColor();
+    }
+
+    @Override
+    public int getSelectPointColor(int linePosition) {
+        return lines.get(linePosition).getSelectedPointColor();
     }
 
     @Override
