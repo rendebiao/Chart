@@ -1,12 +1,13 @@
 package com.rdb.chart.demo;
 
-import android.content.res.Resources;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
 import com.rdb.chart.IndicatorAlign;
+import com.rdb.chart.axis.AxisCharTableSelectedPainter;
+import com.rdb.chart.axis.AxisChartBubbleSelectedPainter;
 import com.rdb.chart.column.ColumnChart;
 import com.rdb.chart.column.ColumnChartAdapter;
 import com.rdb.chart.column.ColumnChartStyle;
@@ -73,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
                 loadData();
             }
         });
+        lineChart.setSelectedPainter(new AxisCharTableSelectedPainter(this));
+        columnChart.setSelectedPainter(new AxisChartBubbleSelectedPainter(this));
     }
 
     private void initStyle() {
@@ -98,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         columnChartStyle.setAxisLineWidth(0.5f);
         columnChartStyle.setGridLineWidth(0.5f);
         columnChartStyle.setShowYAxis(true);
-        columnChartStyle.setVerLineType(null);
+        lineChartStyle.setVerLineType(LineType.DASH);
         columnChartStyle.setHorLineType(LineType.DASH);
         columnChartStyle.setAxisLineColor(color);
         columnChartStyle.setGridLineColor(color);
@@ -139,9 +142,9 @@ public class MainActivity extends AppCompatActivity {
             }
             texts[i] = "2017-1-" + i;
         }
-        dialAdapter.notifyDatasetChanged();
-        lineAdapter.notifyDatasetChanged();
-        columnAdapter.notifyDatasetChanged();
+        dialAdapter.notifyDataSetChanged();
+        lineAdapter.notifyDataSetChanged();
+        columnAdapter.notifyDataSetChanged();
     }
 
     private class LineAdapter extends LineChartAdapter {
@@ -213,6 +216,16 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getLineColor(int linePosition) {
+            return alphaColors[linePosition];
+        }
+
+        @Override
+        public int getPointColor(int linePosition) {
+            return alphaColors[linePosition];
+        }
+
+        @Override
+        public int getSelectPointColor(int linePosition) {
             return colors[linePosition];
         }
     }
