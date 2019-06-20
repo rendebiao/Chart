@@ -191,7 +191,7 @@ public class PieChart extends Chart<PieChartAdapter, PieChartStyle> implements P
 
     @Override
     public float getValue(int position) {
-        return 0;
+        return sectorList.get(position).getValue();
     }
 
     @Override
