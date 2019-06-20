@@ -19,6 +19,9 @@ import com.rdb.chart.line.LineChartAdapter;
 import com.rdb.chart.line.LineChartStyle;
 import com.rdb.chart.line.LineType;
 import com.rdb.chart.line.PointType;
+import com.rdb.chart.pie.PieChart;
+import com.rdb.chart.pie.PieChartAdapter;
+import com.rdb.chart.pie.PieChartStyle;
 
 import java.util.Random;
 
@@ -28,21 +31,25 @@ public class MainActivity extends AppCompatActivity {
     private int group;
     private int xCount;
     private int yCount;
-    private float value;
+    private float dialValue;
     private float maxValue;
     private float minValue;
     private String[] texts;
     private int[] colors=new int[]{0xff0069a6,0xffff00ff,0xffb92120};
     private int[] alphaColors=new int[]{0x800069a6,0x80ff00ff,0x80b92120};
-    private float[][] values;
+    private float[] pieValues;
+    private float[][] axisValues;
     private Random random = new Random();
     private Button reload;
+    private PieChart pieChart;
     private DialChart dialChart;
     private LineChart lineChart;
     private ColumnChart columnChart;
+    private PieChartStyle pieChartStyle;
     private DialChartStyle dialChartStyle;
     private ColumnChartStyle columnChartStyle;
     private LineChartStyle lineChartStyle;
+    private PieAdapter pieAdapter;
     private LineAdapter lineAdapter;
     private DialAdapter dialAdapter;
     private ColumnAdapter columnAdapter;
@@ -58,13 +65,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        reload = (Button) findViewById(R.id.reload);
-        dialChart = (DialChart) findViewById(R.id.dialChart);
-        lineChart = (LineChart) findViewById(R.id.lineChart);
-        columnChart = (ColumnChart) findViewById(R.id.columnChart);
+        reload = findViewById(R.id.reload);
+        pieChart = findViewById(R.id.pieChart);
+        dialChart = findViewById(R.id.dialChart);
+        lineChart = findViewById(R.id.lineChart);
+        columnChart = findViewById(R.id.columnChart);
+        pieAdapter = new PieAdapter();
         dialAdapter = new DialAdapter();
         lineAdapter = new LineAdapter();
         columnAdapter = new ColumnAdapter();
+        pieChart.setAdapter(pieAdapter);
         dialChart.setAdapter(dialAdapter);
         lineChart.setAdapter(lineAdapter);
         columnChart.setAdapter(columnAdapter);
@@ -125,23 +135,30 @@ public class MainActivity extends AppCompatActivity {
         dialChartStyle.setSmallScaleWidth(0.5f);
         dialChartStyle.setDialColor(color);
         dialChart.setStyle(dialChartStyle);
+        pieChartStyle = new PieChartStyle();
+        pieChartStyle.setTextSize(10);
+        pieChartStyle.setValueDecimal(2);
+        pieChart.setStyle(pieChartStyle);
     }
 
     private void loadData() {
         group = 3;
         xCount = 5 + random.nextInt(10);
         yCount = 2 + random.nextInt(4);
-        value = 100 + random.nextInt(100);
+        dialValue = 100 + random.nextInt(100);
         maxValue = 200;
         minValue = 0;
         texts = new String[xCount];
-        values = new float[group][xCount];
+        pieValues = new float[xCount];
+        axisValues = new float[group][xCount];
         for (int i = 0; i < xCount; i++) {
             for (int j = 0; j < group; j++) {
-                values[j][i] = random.nextFloat() * 200;
+                axisValues[j][i] = random.nextFloat() * 200;
             }
             texts[i] = "2017-1-" + i;
+            pieValues[i] = random.nextFloat() * 200;
         }
+        pieAdapter.notifyDataSetChanged();
         dialAdapter.notifyDataSetChanged();
         lineAdapter.notifyDataSetChanged();
         columnAdapter.notifyDataSetChanged();
@@ -196,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public float getValue(int groupPosition, int xAxisPosition) {
-            return values[groupPosition][xAxisPosition];
+            return axisValues[groupPosition][xAxisPosition];
         }
 
         @Override
@@ -254,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public float getCurValue() {
-            return value;
+            return dialValue;
         }
 
         @Override
@@ -268,6 +285,43 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private class PieAdapter extends PieChartAdapter {
+
+        @Override
+        public String getValueUnit() {
+            return null;
+        }
+
+        @Override
+        public String getChartName() {
+            return "饼图";
+        }
+
+        @Override
+        public int getCount() {
+            return xCount;
+        }
+
+        @Override
+        public float getValue(int position) {
+            return pieValues[position];
+        }
+
+        @Override
+        public int getColor(int position) {
+            return alphaColors[position % 3];
+        }
+
+        @Override
+        public int getSelectedColor(int position) {
+            return colors[position % 3];
+        }
+
+        @Override
+        public String getText(int position) {
+            return texts[position];
+        }
+    }
     private class ColumnAdapter extends ColumnChartAdapter {
 
         @Override
@@ -317,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public float getValue(int groupPosition, int xAxisPosition) {
-            return values[groupPosition][xAxisPosition];
+            return axisValues[groupPosition][xAxisPosition];
         }
 
         @Override

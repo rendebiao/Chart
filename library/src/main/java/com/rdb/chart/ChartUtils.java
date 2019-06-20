@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+
 import com.rdb.chart.line.PointType;
 
 import java.math.BigDecimal;
@@ -32,6 +33,18 @@ public class ChartUtils {
 
     public static float getCirclePointY(float centerY, float radius, float degree) {
         return (float) (centerY + radius * Math.sin(degree * Math.PI / 180));
+    }
+
+    public static float getDegree(float centerX, float centerY, float x, float y) {
+        float xDistance = x - centerX;
+        float yDistance = y - centerY;
+        float degree = (float) (Math.atan(yDistance / xDistance) * 180 / Math.PI);
+        if (xDistance < 0) {
+            degree += 180;
+        } else if (yDistance < 0) {
+            degree += 360;
+        }
+        return degree;
     }
 
     public static int updateAlpha(int color, int alpha) {
